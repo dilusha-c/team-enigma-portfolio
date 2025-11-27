@@ -8,8 +8,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Team Enigma | SLIIT Research Team",
-  description: "A research-driven student team from SLIIT, focused on solving real-world problems through engineering, software development, and innovation.",
+  title: "Team Enigma ",
+  description: "A multidisciplinary student team from SLIIT engaged in technology competitions and emerging research activities.",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
