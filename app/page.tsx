@@ -910,8 +910,8 @@ export default function Home() {
               </div>
               <div className="text-left">
                 <p className="text-sm text-slate-500 font-medium">Team Email</p>
-                <a href="mailto:contact@teamenigma.lk" className="text-lg text-slate-900 hover:text-cyan-600 font-semibold transition-colors">
-                  contact@teamenigma.lk
+                <a href="mailto:teamenigma.sliit@gmail.com" className="text-lg text-slate-900 hover:text-cyan-600 font-semibold transition-colors">
+                  teamenigma.sliit@gmail.com
                 </a>
               </div>
             </div>
