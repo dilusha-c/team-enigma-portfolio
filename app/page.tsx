@@ -61,9 +61,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm">
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
@@ -140,24 +140,30 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+      <section className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 py-20 lg:py-32 overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+          <div className="absolute top-40 right-20 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-20 left-40 w-72 h-72 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 animate-fade-in-up drop-shadow-2xl">
             Team Enigma
           </h1>
-          <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto mb-8 leading-relaxed">
+          <p className="text-lg sm:text-xl text-white/90 max-w-3xl mx-auto mb-8 leading-relaxed animate-fade-in-up animation-delay-200">
             A research-driven student team from SLIIT, focused on solving real-world problems through engineering, software development, and innovation.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-400">
             <a
               href="#projects"
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md w-full sm:w-auto"
+              className="px-8 py-3 bg-white text-blue-600 rounded-lg font-medium hover:bg-gray-50 hover:scale-105 transition-all shadow-xl hover:shadow-2xl w-full sm:w-auto"
             >
               View Projects
             </a>
             <a
               href="#research"
-              className="px-8 py-3 bg-white text-blue-600 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-md border border-blue-200 w-full sm:w-auto"
+              className="px-8 py-3 bg-blue-500/20 backdrop-blur-sm text-white rounded-lg font-medium hover:bg-blue-500/30 hover:scale-105 transition-all shadow-xl border border-white/30 w-full sm:w-auto"
             >
               View Research
             </a>
@@ -166,10 +172,12 @@ export default function Home() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-16 lg:py-24 bg-white">
+      <section id="about" className="py-16 lg:py-24 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
         <div 
           ref={(el) => { sectionRefs.current['about'] = el; }}
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
         >
           <h2 className={`text-3xl sm:text-4xl font-bold text-gray-900 mb-8 text-center transition-all duration-700 ${
             visibleSections.includes('about') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
@@ -185,67 +193,68 @@ export default function Home() {
       </section>
 
       {/* Members Section */}
-      <section id="members" className="py-16 lg:py-24 bg-gray-50">
+      <section id="members" className="py-16 lg:py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
         <div 
           ref={(el) => { sectionRefs.current['members'] = el; }}
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
         >
-          <h2 className={`text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center transition-all duration-700 ${
+          <h2 className={`text-3xl sm:text-4xl font-bold text-white mb-12 text-center transition-all duration-700 ${
             visibleSections.includes('members') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}>
             Our Team
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Member 1 */}
-            <div className={`bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all duration-700 ${
+            <div className={`bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl p-6 hover:shadow-blue-500/50 hover:bg-white/15 hover:scale-105 hover:-rotate-1 transition-all duration-700 border border-white/20 ${
               visibleSections.includes('members') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}>
               <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
                 DC
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+              <h3 className="text-xl font-semibold text-white text-center mb-2">
                 Dilusha Chamika
               </h3>
-              <p className="text-sm text-blue-600 text-center mb-3 font-medium">
+              <p className="text-sm text-blue-300 text-center mb-3 font-medium">
                 Computer Systems Engineering Undergraduate
               </p>
-              <p className="text-gray-600 text-center text-sm leading-relaxed">
+              <p className="text-gray-200 text-center text-sm leading-relaxed">
                 Specializing in embedded systems and network security. Passionate about developing intelligent threat detection systems and working with UAV technologies for innovative applications.
               </p>
             </div>
 
             {/* Member 2 */}
-            <div className={`bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all duration-700 delay-150 ${
+            <div className={`bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl p-6 hover:shadow-indigo-500/50 hover:bg-white/15 hover:scale-105 hover:rotate-1 transition-all duration-700 delay-150 border border-white/20 ${
               visibleSections.includes('members') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}>
               <div className="w-20 h-20 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
                 HP
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+              <h3 className="text-xl font-semibold text-white text-center mb-2">
                 Hesara Perera
               </h3>
-              <p className="text-sm text-blue-600 text-center mb-3 font-medium">
+              <p className="text-sm text-blue-300 text-center mb-3 font-medium">
                 Computer Science Undergraduate
               </p>
-              <p className="text-gray-600 text-center text-sm leading-relaxed">
+              <p className="text-gray-200 text-center text-sm leading-relaxed">
                 Full-stack developer with expertise in web technologies and software architecture. Focused on building scalable applications and exploring machine learning integration in practical systems.
               </p>
             </div>
 
             {/* Member 3 */}
-            <div className={`bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all duration-700 delay-300 ${
+            <div className={`bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl p-6 hover:shadow-purple-500/50 hover:bg-white/15 hover:scale-105 hover:-rotate-1 transition-all duration-700 delay-300 border border-white/20 ${
               visibleSections.includes('members') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}>
               <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
                 SP
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+              <h3 className="text-xl font-semibold text-white text-center mb-2">
                 Sandil Perera
               </h3>
-              <p className="text-sm text-blue-600 text-center mb-3 font-medium">
+              <p className="text-sm text-blue-300 text-center mb-3 font-medium">
                 Computer Science Undergraduate
               </p>
-              <p className="text-gray-600 text-center text-sm leading-relaxed">
+              <p className="text-gray-200 text-center text-sm leading-relaxed">
                 Software engineer passionate about automation and intelligent systems. Experienced in database design, API development, and creating user-centric solutions for complex problems.
               </p>
             </div>
@@ -254,17 +263,19 @@ export default function Home() {
       </section>
 
       {/* Research Section */}
-      <section id="research" className="py-16 lg:py-24 bg-white">
+      <section id="research" className="py-16 lg:py-24 bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">
+        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-10 right-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
         <div 
           ref={(el) => { sectionRefs.current['research'] = el; }}
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
         >
           <h2 className={`text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center transition-all duration-700 ${
             visibleSections.includes('research') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}>
             Research
           </h2>
-          <div className={`bg-white rounded-xl shadow-lg p-8 border border-gray-100 transition-all duration-700 delay-200 ${
+          <div className={`bg-white/80 backdrop-blur-sm rounded-xl shadow-2xl p-8 border border-gray-200 hover:shadow-blue-500/20 hover:scale-[1.02] transition-all duration-700 delay-200 ${
             visibleSections.includes('research') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}>
             <div className="flex items-start gap-3 mb-4">
@@ -304,10 +315,15 @@ export default function Home() {
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="py-16 lg:py-24 bg-gray-50">
+      <section id="projects" className="py-16 lg:py-24 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-20 w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+          <div className="absolute top-40 right-20 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        </div>
         <div 
           ref={(el) => { sectionRefs.current['projects'] = el; }}
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
         >
           <h2 className={`text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center transition-all duration-700 ${
             visibleSections.includes('projects') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
@@ -316,7 +332,7 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Project 1 */}
-            <div className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-700 ${
+            <div className={`bg-white/90 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden hover:shadow-2xl hover:scale-105 hover:-rotate-1 transition-all duration-700 ${
               visibleSections.includes('projects') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}>
               <div className="h-2 bg-gradient-to-r from-red-500 to-orange-500"></div>
@@ -344,7 +360,7 @@ export default function Home() {
             </div>
 
             {/* Project 2 */}
-            <div className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-700 delay-150 ${
+            <div className={`bg-white/90 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden hover:shadow-2xl hover:scale-105 hover:rotate-1 transition-all duration-700 delay-150 ${
               visibleSections.includes('projects') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}>
               <div className="h-2 bg-gradient-to-r from-green-500 to-teal-500"></div>
@@ -372,7 +388,7 @@ export default function Home() {
             </div>
 
             {/* Project 3 */}
-            <div className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-700 delay-300 ${
+            <div className={`bg-white/90 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden hover:shadow-2xl hover:scale-105 hover:-rotate-1 transition-all duration-700 delay-300 ${
               visibleSections.includes('projects') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}>
               <div className="h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
@@ -403,9 +419,12 @@ export default function Home() {
       </section>
 
       {/* Competitions Section */}
-      <section id="competitions" className="py-16 lg:py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-16 text-center">
+      <section id="competitions" className="py-16 lg:py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiM2MzY2RjEiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-16 text-center drop-shadow-lg">
             Competitions & Events
           </h2>
           
@@ -567,38 +586,39 @@ export default function Home() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-16 lg:py-24 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+      <section id="contact" className="py-16 lg:py-24 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-60"></div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 drop-shadow-lg">
             Get In Touch
           </h2>
-          <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
             Interested in collaborating or learning more about our projects? We&apos;d love to hear from you!
           </p>
-          <div className="bg-white rounded-xl shadow-md p-8 inline-block">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl p-8 inline-block border border-white/20 hover:bg-white/15 hover:scale-105 transition-all duration-500">
             <div className="flex items-center gap-3 justify-center mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-sm text-gray-500 font-medium">Team Email</p>
-                <a href="mailto:contact@teamenigma.lk" className="text-lg text-blue-600 hover:text-blue-700 font-semibold">
+                <p className="text-sm text-white/70 font-medium">Team Email</p>
+                <a href="mailto:contact@teamenigma.lk" className="text-lg text-white hover:text-blue-200 font-semibold transition-colors">
                   contact@teamenigma.lk
                 </a>
               </div>
             </div>
             <div className="flex items-center gap-3 justify-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-sm text-gray-500 font-medium">Location</p>
-                <p className="text-lg text-gray-900 font-semibold">
+                <p className="text-sm text-white/70 font-medium">Location</p>
+                <p className="text-lg text-white font-semibold">
                   SLIIT, Malabe, Sri Lanka
                 </p>
               </div>
