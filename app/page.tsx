@@ -6,22 +6,33 @@ import { useState, useEffect, useRef } from "react";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [visibleItems, setVisibleItems] = useState<number[]>([]);
+  const [visibleItems, setVisibleItems] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [visibleSections, setVisibleSections] = useState<string[]>([]);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [currentTimelineIndex, setCurrentTimelineIndex] = useState(0);
-  const [timelineScrollLocked, setTimelineScrollLocked] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const timelineRefs = useRef<(HTMLDivElement | null)[]>([]);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const timelineSectionRef = useRef<HTMLDivElement | null>(null);
-
-  // Minimum swipe distance (in px)
-  const minSwipeDistance = 50;
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
+
+    // Timeline items observer
+    timelineRefs.current.forEach((ref, index) => {
+      if (ref) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                setVisibleItems((prev) => [...new Set([...prev, index])]);
+              }
+            });
+          },
+          { threshold: 0.1 }
+        );
+
+        observer.observe(ref);
+        observers.push(observer);
+      }
+    });
 
     // Section observer
     Object.entries(sectionRefs.current).forEach(([key, ref]) => {
@@ -42,37 +53,14 @@ export default function Home() {
       }
     });
 
-    // Desktop timeline observer (only for lg screens)
-    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
-      timelineRefs.current.forEach((item, index) => {
-        if (item) {
-          const observer = new IntersectionObserver(
-            (entries) => {
-              entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                  setVisibleItems((prev) => 
-                    prev.includes(index) ? prev : [...prev, index]
-                  );
-                }
-              });
-            },
-            { threshold: 0.2 }
-          );
-
-          observer.observe(item);
-          observers.push(observer);
-        }
-      });
-    }
-
     return () => {
       observers.forEach((observer) => observer.disconnect());
     };
   }, []);
 
-  // Scroll progress tracker (desktop only, no timeline scroll-jacking)
+  // Scroll progress tracker
   useEffect(() => {
-    const handleScrollPassive = () => {
+    const handleScroll = () => {
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       const scrollTop = window.scrollY;
@@ -80,40 +68,11 @@ export default function Home() {
       setScrollProgress(Math.min(100, Math.max(0, scrollPercentage)));
     };
 
-    window.addEventListener('scroll', handleScrollPassive);
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial calculation
 
-    return () => {
-      window.removeEventListener('scroll', handleScrollPassive);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Touch event handlers for mobile timeline swipe
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && currentTimelineIndex < 3) {
-      // Swipe left - next event
-      setCurrentTimelineIndex(prev => Math.min(prev + 1, 3));
-    }
-    
-    if (isRightSwipe && currentTimelineIndex > 0) {
-      // Swipe right - previous event
-      setCurrentTimelineIndex(prev => Math.max(prev - 1, 0));
-    }
-  };
 
   const setTimelineRef = (index: number) => (el: HTMLDivElement | null) => {
     timelineRefs.current[index] = el;
@@ -534,11 +493,7 @@ export default function Home() {
       </section>
 
       {/* Competitions Section */}
-      <section 
-        id="competitions" 
-        ref={timelineSectionRef}
-        className="py-20 lg:py-28 bg-white border-t border-slate-200 relative overflow-hidden"
-      >
+      <section id="competitions" className="py-20 lg:py-28 bg-white border-t border-slate-200 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(14,165,233,0.08),_transparent_60%)]" aria-hidden></div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-16 text-center">
@@ -547,197 +502,40 @@ export default function Home() {
           
           {/* Timeline Container */}
           <div className="relative">
-            {/* Center Timeline Line - Desktop */}
+            {/* Center Timeline Line */}
             <div className="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 w-1 bg-linear-to-b from-cyan-200 via-blue-200 to-violet-200 hidden lg:block"></div>
             
-            {/* Mobile Horizontal Scrolling Timeline */}
-            <div className="lg:hidden">
-              <div 
-                className="relative h-[600px] overflow-hidden"
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-              >
-                {/* Horizontal Timeline Line */}
-                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-linear-to-r from-cyan-200 via-blue-200 to-violet-200 transform -translate-y-1/2"></div>
-                
-                {/* Scrolling Timeline Container */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2 w-full px-4">
-                  <div className="flex items-center gap-8 transition-transform duration-700 ease-out"
-                       style={{
-                         transform: `translateX(calc(-${currentTimelineIndex * 100}% - ${currentTimelineIndex * 2}rem))`
-                       }}>
-                    
-                    {/* Event 1 - HackX (Oldest) */}
-                    <div ref={setTimelineRef(0)} className="min-w-full flex items-center justify-center gap-6">
-                      <div className="w-20 h-20 bg-white rounded-full shadow-2xl border-4 border-orange-500 flex flex-col items-center justify-center relative z-20 shrink-0">
-                        <span className="text-lg font-bold text-orange-600">2024</span>
-                        <span className="text-[9px] text-slate-500 font-semibold">Oct</span>
-                        <div className="absolute -inset-1 bg-orange-400 rounded-full opacity-20 animate-ping"></div>
-                      </div>
-                      <div className="flex-1 max-w-md bg-white rounded-2xl p-5 shadow-[0_30px_70px_-40px_rgba(251,146,60,0.4)] border border-orange-100">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-linear-to-br from-orange-400 via-amber-500 to-yellow-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                            <svg className="w-5 h-5 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-base font-bold text-slate-900 mb-1">
-                              HackX 3.0 – Participants
-                            </h3>
-                            <p className="text-xs text-orange-700 mb-1 font-medium">📍 SLIIT – Malabe Campus</p>
-                            <p className="text-[10px] text-slate-500 mb-2">👥 Dilusha, Hesara, Sandil</p>
-                            <p className="text-slate-600 text-xs mb-2 leading-relaxed">
-                              Annual inter-university hackathon at SLIIT with peers across Sri Lanka.
-                            </p>
-                            <div className="flex gap-1 flex-wrap">
-                              <span className="px-2 py-0.5 bg-orange-100 text-orange-800 text-[10px] rounded-full font-semibold">Innovation</span>
-                              <span className="px-2 py-0.5 bg-orange-100 text-orange-800 text-[10px] rounded-full font-semibold">Team</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Event 2 - Mora Mora */}
-                    <div ref={setTimelineRef(1)} className="min-w-full flex items-center justify-center gap-6">
-                      <div className="w-20 h-20 bg-white rounded-full shadow-2xl border-4 border-violet-500 flex flex-col items-center justify-center relative z-20 shrink-0">
-                        <span className="text-lg font-bold text-violet-600">2024</span>
-                        <span className="text-[9px] text-slate-500 font-semibold">Dec</span>
-                        <div className="absolute -inset-1 bg-violet-400 rounded-full opacity-20 animate-ping"></div>
-                      </div>
-                      <div className="flex-1 max-w-md bg-white rounded-2xl p-5 shadow-[0_30px_70px_-40px_rgba(139,92,246,0.4)] border border-violet-100">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-linear-to-br from-violet-400 via-fuchsia-500 to-pink-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-base font-bold text-slate-900 mb-1">
-                              Mora Mora – Participants
-                            </h3>
-                            <p className="text-xs text-violet-700 mb-1 font-medium">📍 University of Moratuwa</p>
-                            <p className="text-[10px] text-slate-500 mb-2">👥 Dilusha, Hesara, Sandil</p>
-                            <p className="text-slate-600 text-xs mb-2 leading-relaxed">
-                              Inter-university 24-hour hackathon with innovative tech solutions.
-                            </p>
-                            <div className="flex gap-1 flex-wrap">
-                              <span className="px-2 py-0.5 bg-violet-100 text-violet-800 text-[10px] rounded-full font-semibold">Hackathon</span>
-                              <span className="px-2 py-0.5 bg-violet-100 text-violet-800 text-[10px] rounded-full font-semibold">24hrs</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Event 3 - CodeRally */}
-                    <div ref={setTimelineRef(2)} className="min-w-full flex items-center justify-center gap-6">
-                      <div className="w-20 h-20 bg-white rounded-full shadow-2xl border-4 border-indigo-500 flex flex-col items-center justify-center relative z-20 shrink-0">
-                        <span className="text-lg font-bold text-indigo-600">2025</span>
-                        <span className="text-[9px] text-slate-500 font-semibold">Sep</span>
-                        <div className="absolute -inset-1 bg-indigo-400 rounded-full opacity-20 animate-ping"></div>
-                      </div>
-                      <div className="flex-1 max-w-md bg-white rounded-2xl p-5 shadow-[0_30px_70px_-40px_rgba(99,102,241,0.4)] border border-indigo-100">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-linear-to-br from-indigo-400 via-indigo-500 to-violet-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-base font-bold text-slate-900 mb-1">
-                              CodeRally 6.0 – 4th Place
-                            </h3>
-                            <p className="text-xs text-indigo-700 mb-1 font-medium">📍 IIT – Informatics Institute</p>
-                            <p className="text-[10px] text-slate-500 mb-2">👥 Hesara, Sandil, Senal, Hasith</p>
-                            <p className="text-slate-600 text-xs mb-2 leading-relaxed">
-                              24-hour hackathon by IEEE Computer Society. 4th place in Intermediate Tier.
-                            </p>
-                            <div className="flex gap-1 flex-wrap">
-                              <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] rounded-full font-semibold">AI/ML</span>
-                              <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] rounded-full font-semibold">24hrs</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Event 4 - InnovateX (Newest) */}
-                    <div ref={setTimelineRef(3)} className="min-w-full flex items-center justify-center gap-6">
-                      <div className="w-20 h-20 bg-white rounded-full shadow-2xl border-4 border-blue-500 flex flex-col items-center justify-center relative z-20 shrink-0">
-                        <span className="text-lg font-bold text-blue-600">2025</span>
-                        <span className="text-[9px] text-slate-500 font-semibold">Oct</span>
-                        <div className="absolute -inset-1 bg-blue-400 rounded-full opacity-20 animate-ping"></div>
-                      </div>
-                      <div className="flex-1 max-w-md bg-white rounded-2xl p-5 shadow-[0_30px_70px_-40px_rgba(34,139,230,0.45)] border border-cyan-100">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-linear-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                            <svg className="w-5 h-5 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-base font-bold text-slate-900 mb-1">
-                              InnovateX Datathon – Finalists
-                            </h3>
-                            <p className="text-xs text-cyan-700 mb-1 font-medium">📍 Galle Face Hotel</p>
-                            <p className="text-[10px] text-slate-500 mb-2">👥 Dilusha, Sandil, Sandali</p>
-                            <p className="text-slate-600 text-xs mb-2 leading-relaxed">
-                              Finalists in a 6-hour Datathon by Zebra Technologies.
-                            </p>
-                            <div className="flex gap-1 flex-wrap">
-                              <span className="px-2 py-0.5 bg-cyan-100 text-cyan-800 text-[10px] rounded-full font-semibold">Data Science</span>
-                              <span className="px-2 py-0.5 bg-cyan-100 text-cyan-800 text-[10px] rounded-full font-semibold">6hrs</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Scroll Indicator Dots */}
-                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-30">
-                  <div className={`w-2 h-2 rounded-full transition-all duration-300 ${currentTimelineIndex === 0 ? 'bg-orange-500 w-6' : 'bg-slate-300'}`}></div>
-                  <div className={`w-2 h-2 rounded-full transition-all duration-300 ${currentTimelineIndex === 1 ? 'bg-violet-500 w-6' : 'bg-slate-300'}`}></div>
-                  <div className={`w-2 h-2 rounded-full transition-all duration-300 ${currentTimelineIndex === 2 ? 'bg-indigo-500 w-6' : 'bg-slate-300'}`}></div>
-                  <div className={`w-2 h-2 rounded-full transition-all duration-300 ${currentTimelineIndex === 3 ? 'bg-blue-500 w-6' : 'bg-slate-300'}`}></div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Desktop Timeline Items */}
-            <div className="space-y-24 lg:space-y-32 hidden lg:block">
+            {/* Timeline Items */}
+            <div className="space-y-24 lg:space-y-32">
               
-              {/* Event 1 - HackX 3.0 (Oldest - 2024 Oct) */}
+              {/* Event 1 - SLIITXtreme 3.0 (Oldest) */}
               <div 
                 ref={setTimelineRef(0)}
                 className={`relative flex flex-col lg:flex-row items-center lg:items-start gap-8 transition-all duration-1000 ${
-                  visibleItems.includes(0) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
+                  visibleItems.includes(0) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
                 }`}
               >
                 <div className="w-full lg:w-5/12 lg:pr-8 lg:text-right order-2 lg:order-1">
-                  <div className="bg-white rounded-2xl p-6 shadow-[0_30px_70px_-40px_rgba(251,146,60,0.4)] transition-all duration-500 border border-orange-100 hover:-translate-y-1 hover:shadow-orange-300/50">
+                  <div className="bg-white rounded-2xl p-6 shadow-[0_30px_70px_-40px_rgba(248,113,113,0.35)] transition-all duration-500 border border-orange-100 hover:-translate-y-1 hover:shadow-orange-200/80">
                     <div className="flex lg:flex-row-reverse items-start gap-4">
-                      <div className="w-12 h-12 bg-linear-to-br from-orange-400 via-amber-500 to-yellow-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg animate-pulse">
-                        <svg className="w-6 h-6 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      <div className="w-12 h-12 bg-linear-to-br from-orange-400 via-amber-500 to-rose-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg animate-pulse">
+                        <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                         </svg>
                       </div>
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-slate-900 mb-2">
-                          HackX 3.0 – Participants
+                          5th Place – SLIITXtreme 3.0
                         </h3>
-                        <p className="text-sm text-orange-700 mb-2 font-medium">📍 SLIIT – Malabe Campus</p>
-                        <p className="text-sm text-slate-500 mb-3">👥 Dilusha Chamika, Hesara Perera, Sandil Helitha Perera</p>
+                        <p className="text-sm text-orange-600 mb-2 font-medium">📍 SLIIT Malabe Campus</p>
+                        <p className="text-sm text-slate-500 mb-3">👥 Dilusha Chamika, Hesara Perera, Sandil Perera</p>
                         <p className="text-slate-600 text-sm mb-3 leading-relaxed">
-                          Annual inter-university hackathon at SLIIT. Collaborated on developing creative solutions with peers from across Sri Lanka.
+                          Achieved 5th place at SLIITXtreme 3.0, demonstrating teamwork and competitive coding skills under time pressure.
                         </p>
                         <div className="flex lg:justify-end gap-2 flex-wrap">
-                          <span className="px-3 py-1 bg-orange-100 text-orange-800 text-xs rounded-full font-semibold">Innovation</span>
-                          <span className="px-3 py-1 bg-orange-100 text-orange-800 text-xs rounded-full font-semibold">Team</span>
+                          <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-semibold">Competitive Programming</span>
+                          <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-semibold">Teamwork</span>
+                          <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-semibold">Coding Challenge</span>
                         </div>
                       </div>
                     </div>
@@ -755,43 +553,44 @@ export default function Home() {
                 <div className="hidden lg:block lg:w-5/12 order-3"></div>
               </div>
 
-              {/* Event 2 - Mora Mora (2024 Dec) */}
+              {/* Event 2 - CODEFEST 2024 Algothon */}
               <div 
                 ref={setTimelineRef(1)}
                 className={`relative flex flex-col lg:flex-row items-center lg:items-start gap-8 transition-all duration-1000 ${
-                  visibleItems.includes(1) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+                  visibleItems.includes(1) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
                 }`}
               >
                 <div className="hidden lg:block lg:w-5/12 order-1"></div>
                 <div className="w-full lg:w-2/12 flex justify-center order-1 lg:order-2">
-                  <div className={`w-28 h-28 lg:w-32 lg:h-32 bg-white rounded-full shadow-2xl border-4 border-violet-500 flex flex-col items-center justify-center relative z-20 transition-all duration-700 delay-300 hover:scale-105 ${
+                  <div className={`w-28 h-28 lg:w-32 lg:h-32 bg-white rounded-full shadow-2xl border-4 border-green-500 flex flex-col items-center justify-center relative z-20 transition-all duration-700 delay-300 hover:scale-105 ${
                     visibleItems.includes(1) ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
                   }`}>
-                    <span className="text-2xl lg:text-3xl font-bold text-violet-600">2024</span>
-                    <span className="text-xs text-slate-500 font-semibold mt-1">December</span>
-                    <div className="absolute -inset-1 bg-violet-400 rounded-full opacity-20 animate-ping"></div>
+                    <span className="text-2xl lg:text-3xl font-bold text-green-600">2025</span>
+                    <span className="text-xs text-slate-500 font-semibold mt-1">January</span>
+                    <div className="absolute -inset-1 bg-green-400 rounded-full opacity-20 animate-ping"></div>
                   </div>
                 </div>
                 <div className="w-full lg:w-5/12 lg:pl-8 order-2 lg:order-3">
-                  <div className="bg-white rounded-2xl p-6 shadow-[0_30px_70px_-40px_rgba(139,92,246,0.4)] transition-all duration-500 border border-violet-100 hover:-translate-y-1 hover:shadow-violet-200/80">
+                  <div className="bg-white rounded-2xl p-6 shadow-[0_30px_70px_-40px_rgba(16,185,129,0.35)] transition-all duration-500 border border-emerald-100 hover:-translate-y-1 hover:shadow-emerald-200/80">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-linear-to-br from-violet-400 via-fuchsia-500 to-pink-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg animate-pulse">
+                      <div className="w-12 h-12 bg-linear-to-br from-emerald-400 via-teal-500 to-cyan-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg animate-pulse">
                         <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                       </div>
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-slate-900 mb-2">
-                          Mora Mora – Participants
+                          Finalists – CODEFEST 2024 Algothon
                         </h3>
-                        <p className="text-sm text-violet-700 mb-2 font-medium">📍 University of Moratuwa</p>
-                        <p className="text-sm text-slate-500 mb-3">👥 Dilusha Chamika, Hesara Perera, Sandil Helitha Perera</p>
+                        <p className="text-sm text-emerald-700 mb-2 font-medium">📍 SLIIT Malabe Campus</p>
+                        <p className="text-sm text-slate-500 mb-3">👥 Dilusha Chamika, Hesara Perera, Sandil Perera</p>
                         <p className="text-slate-600 text-sm mb-3 leading-relaxed">
-                          Inter-university 24-hour hackathon. Worked on innovative tech solutions and gained valuable experience in competitive development.
+                          Reached the final round of the CODEFEST 2024 Algothon competition after solving complex algorithmic challenges.
                         </p>
                         <div className="flex gap-2 flex-wrap">
-                          <span className="px-3 py-1 bg-violet-100 text-violet-800 text-xs rounded-full font-semibold">Hackathon</span>
-                          <span className="px-3 py-1 bg-violet-100 text-violet-800 text-xs rounded-full font-semibold">24hrs</span>
+                          <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full font-semibold">Algorithms</span>
+                          <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full font-semibold">Problem Solving</span>
+                          <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full font-semibold">Finalists</span>
                         </div>
                       </div>
                     </div>
@@ -799,7 +598,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Event 3 - CodeRally 6.0 (2025 Sep) */}
+              {/* Event 3 - Algothon Merit Award */}
               <div 
                 ref={setTimelineRef(2)}
                 className={`relative flex flex-col lg:flex-row items-center lg:items-start gap-8 transition-all duration-1000 ${
@@ -807,8 +606,63 @@ export default function Home() {
                 }`}
               >
                 <div className="w-full lg:w-5/12 lg:pr-8 lg:text-right order-2 lg:order-1">
-                  <div className="bg-white rounded-2xl p-6 shadow-[0_30px_70px_-40px_rgba(99,102,241,0.4)] transition-all duration-500 border border-indigo-100 hover:-translate-y-1 hover:shadow-indigo-200/80">
+                  <div className="bg-white rounded-2xl p-6 shadow-[0_30px_70px_-40px_rgba(168,85,247,0.35)] transition-all duration-500 border border-violet-100 hover:-translate-y-1 hover:shadow-violet-200/80">
                     <div className="flex lg:flex-row-reverse items-start gap-4">
+                      <div className="w-12 h-12 bg-linear-to-br from-violet-400 via-purple-500 to-fuchsia-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg animate-pulse">
+                        <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">
+                          Merit Award – Algothon Contest
+                        </h3>
+                        <p className="text-sm text-violet-700 mb-2 font-medium">📍 SLIIT Malabe Campus</p>
+                        <p className="text-sm text-slate-500 mb-3">👥 Dilusha Chamika, Hesara Perera, Sandil Perera</p>
+                        <p className="text-slate-600 text-sm mb-3 leading-relaxed">
+                          Received a Merit Award in the Algothon contest at SLIIT CODEFEST 2025, recognized for exceptional algorithmic problem-solving and teamwork in the Tertiary Category.
+                        </p>
+                        <div className="flex lg:justify-end gap-2 flex-wrap">
+                          <span className="px-3 py-1 bg-violet-100 text-violet-800 text-xs rounded-full font-semibold">Algorithms</span>
+                          <span className="px-3 py-1 bg-violet-100 text-violet-800 text-xs rounded-full font-semibold">Coding Contest</span>
+                          <span className="px-3 py-1 bg-violet-100 text-violet-800 text-xs rounded-full font-semibold">Tertiary Category</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full lg:w-2/12 flex justify-center order-1 lg:order-2">
+                  <div className={`w-28 h-28 lg:w-32 lg:h-32 bg-white rounded-full shadow-2xl border-4 border-purple-500 flex flex-col items-center justify-center relative z-20 transition-all duration-700 delay-300 hover:scale-105 ${
+                    visibleItems.includes(2) ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
+                  }`}>
+                    <span className="text-2xl lg:text-3xl font-bold text-purple-600">2025</span>
+                    <span className="text-xs text-slate-500 font-semibold mt-1">September</span>
+                    <div className="absolute -inset-1 bg-purple-400 rounded-full opacity-20 animate-ping"></div>
+                  </div>
+                </div>
+                <div className="hidden lg:block lg:w-5/12 order-3"></div>
+              </div>
+
+              {/* Event 4 - CodeRally 6.0 */}
+              <div 
+                ref={setTimelineRef(3)}
+                className={`relative flex flex-col lg:flex-row items-center lg:items-start gap-8 transition-all duration-1000 ${
+                  visibleItems.includes(3) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+                }`}
+              >
+                <div className="hidden lg:block lg:w-5/12 order-1"></div>
+                <div className="w-full lg:w-2/12 flex justify-center order-1 lg:order-2">
+                  <div className={`w-28 h-28 lg:w-32 lg:h-32 bg-white rounded-full shadow-2xl border-4 border-indigo-500 flex flex-col items-center justify-center relative z-20 transition-all duration-700 delay-300 hover:scale-105 ${
+                    visibleItems.includes(3) ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
+                  }`}>
+                    <span className="text-2xl lg:text-3xl font-bold text-indigo-600">2025</span>
+                    <span className="text-xs text-slate-500 font-semibold mt-1">September</span>
+                    <div className="absolute -inset-1 bg-indigo-400 rounded-full opacity-20 animate-ping"></div>
+                  </div>
+                </div>
+                <div className="w-full lg:w-5/12 lg:pl-8 order-2 lg:order-3">
+                  <div className="bg-white rounded-2xl p-6 shadow-[0_30px_70px_-40px_rgba(99,102,241,0.4)] transition-all duration-500 border border-indigo-100 hover:-translate-y-1 hover:shadow-indigo-200/80">
+                    <div className="flex items-start gap-4">
                       <div className="w-12 h-12 bg-linear-to-br from-indigo-400 via-indigo-500 to-violet-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg animate-pulse">
                         <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -819,11 +673,11 @@ export default function Home() {
                           CodeRally 6.0 – 4th Place (Intermediate Tier)
                         </h3>
                         <p className="text-sm text-indigo-700 mb-2 font-medium">📍 IIT – Informatics Institute of Technology</p>
-                        <p className="text-sm text-slate-500 mb-3">👥 Hesara Perera, Sandil Helitha Perera, Senal Galagedara, Hasith Kaushal</p>
+                        <p className="text-sm text-slate-500 mb-3">👥 Hesara Perera, Dilusha Chamika, Sandil Helitha Perera, Senal Galagedara, Hasith Kaushal</p>
                         <p className="text-slate-600 text-sm mb-3 leading-relaxed">
                           Participated in an intense 24-hour hackathon organized by the IEEE Computer Society SB Chapter of IIT. Built working solutions under time pressure and secured 4th place in the Intermediate Tier.
                         </p>
-                        <div className="flex lg:justify-end gap-2 flex-wrap">
+                        <div className="flex gap-2 flex-wrap">
                           <span className="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full font-semibold">AI/ML</span>
                           <span className="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full font-semibold">Competitive Programming</span>
                           <span className="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full font-semibold">24hrs</span>
@@ -832,38 +686,18 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                <div className="w-full lg:w-2/12 flex justify-center order-1 lg:order-2">
-                  <div className={`w-28 h-28 lg:w-32 lg:h-32 bg-white rounded-full shadow-2xl border-4 border-indigo-500 flex flex-col items-center justify-center relative z-20 transition-all duration-700 delay-300 hover:scale-105 ${
-                    visibleItems.includes(2) ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
-                  }`}>
-                    <span className="text-2xl lg:text-3xl font-bold text-indigo-600">2025</span>
-                    <span className="text-xs text-slate-500 font-semibold mt-1">September</span>
-                    <div className="absolute -inset-1 bg-indigo-400 rounded-full opacity-20 animate-ping"></div>
-                  </div>
-                </div>
-                <div className="hidden lg:block lg:w-5/12 order-3"></div>
               </div>
 
-              {/* Event 4 - InnovateX Datathon (Newest - 2025 Oct) */}
+              {/* Event 5 - InnovateX Datathon (Most Recent) */}
               <div 
-                ref={setTimelineRef(3)}
+                ref={setTimelineRef(4)}
                 className={`relative flex flex-col lg:flex-row items-center lg:items-start gap-8 transition-all duration-1000 ${
-                  visibleItems.includes(3) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'
+                  visibleItems.includes(4) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'
                 }`}
               >
-                <div className="hidden lg:block lg:w-5/12 order-1"></div>
-                <div className="w-full lg:w-2/12 flex justify-center order-1 lg:order-2">
-                  <div className={`w-28 h-28 lg:w-32 lg:h-32 bg-white rounded-full shadow-2xl border-4 border-blue-500 flex flex-col items-center justify-center relative z-20 transition-all duration-700 delay-300 hover:scale-105 ${
-                    visibleItems.includes(3) ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
-                  }`}>
-                    <span className="text-2xl lg:text-3xl font-bold text-blue-600">2025</span>
-                    <span className="text-xs text-slate-500 font-semibold mt-1">October</span>
-                    <div className="absolute -inset-1 bg-blue-400 rounded-full opacity-20 animate-ping"></div>
-                  </div>
-                </div>
-                <div className="w-full lg:w-5/12 lg:pl-8 order-2 lg:order-3">
+                <div className="w-full lg:w-5/12 lg:pr-8 lg:text-right order-2 lg:order-1">
                   <div className="bg-white rounded-2xl p-6 shadow-[0_30px_70px_-40px_rgba(34,139,230,0.45)] transition-all duration-500 border border-cyan-100 hover:-translate-y-1 hover:shadow-cyan-300/50">
-                    <div className="flex items-start gap-4">
+                    <div className="flex lg:flex-row-reverse items-start gap-4">
                       <div className="w-12 h-12 bg-linear-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg animate-pulse">
                         <svg className="w-6 h-6 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -878,7 +712,7 @@ export default function Home() {
                         <p className="text-slate-600 text-sm mb-3 leading-relaxed">
                           Finalists in a 6-hour Datathon organized by Zebra Technologies. Worked with real-world datasets to build insights and analytics dashboards under strict time constraints.
                         </p>
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex lg:justify-end gap-2 flex-wrap">
                           <span className="px-3 py-1 bg-cyan-100 text-cyan-800 text-xs rounded-full font-semibold">Data Science</span>
                           <span className="px-3 py-1 bg-cyan-100 text-cyan-800 text-xs rounded-full font-semibold">Rapid Prototyping</span>
                           <span className="px-3 py-1 bg-cyan-100 text-cyan-800 text-xs rounded-full font-semibold">6hrs</span>
@@ -887,6 +721,16 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
+                <div className="w-full lg:w-2/12 flex justify-center order-1 lg:order-2">
+                  <div className={`w-28 h-28 lg:w-32 lg:h-32 bg-white rounded-full shadow-2xl border-4 border-blue-500 flex flex-col items-center justify-center relative z-20 transition-all duration-700 delay-300 hover:scale-105 ${
+                    visibleItems.includes(4) ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
+                  }`}>
+                    <span className="text-2xl lg:text-3xl font-bold text-blue-600">2025</span>
+                    <span className="text-xs text-slate-500 font-semibold mt-1">October</span>
+                    <div className="absolute -inset-1 bg-blue-400 rounded-full opacity-20 animate-ping"></div>
+                  </div>
+                </div>
+                <div className="hidden lg:block lg:w-5/12 order-3"></div>
               </div>
               
             </div>
